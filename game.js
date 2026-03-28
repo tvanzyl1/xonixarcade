@@ -583,19 +583,53 @@ function moveEnemyAxis(enemy, axis, dt) {
   }
 }
 
+function trailOwnerAtCircle(cx, cy, radius) {
+  const minX = Math.max(0, Math.floor((cx - radius) / CELL));
+  const maxX = Math.min(COLS - 1, Math.floor((cx + radius) / CELL));
+  const minY = Math.max(0, Math.floor((cy - radius) / CELL));
+  const maxY = Math.min(ROWS - 1, Math.floor((cy + radius) / CELL));
+
+  for (let y = minY; y <= maxY; y += 1) {
+    for (let x = minX; x <= maxX; x += 1) {
+      const cell = cellAt(x, y);
+      if (cell !== TRAIL_P1 && cell !== TRAIL_P2) continue;
+
+      const nearestX = Math.max(x * CELL, Math.min(cx, (x + 1) * CELL));
+      const nearestY = Math.max(y * CELL, Math.min(cy, (y + 1) * CELL));
+      const dx = cx - nearestX;
+      const dy = cy - nearestY;
+      if ((dx * dx) + (dy * dy) <= radius * radius) {
+        return app.players.find((player) => trailType(player) === cell) ?? null;
+      }
+    }
+  }
+
+  return null;
+}
+
+function trailOwnerAlongEnemyPath(x0, y0, x1, y1, radius) {
+  const distance = Math.hypot(x1 - x0, y1 - y0);
+  const steps = Math.max(1, Math.ceil(distance / Math.max(2, CELL / 4)));
+  for (let step = 0; step <= steps; step += 1) {
+    const t = step / steps;
+    const x = x0 + (x1 - x0) * t;
+    const y = y0 + (y1 - y0) * t;
+    const owner = trailOwnerAtCircle(x, y, radius);
+    if (owner) return owner;
+  }
+  return null;
+}
+
 function moveEnemies(dt) {
   for (const enemy of app.enemies) {
+    const startX = enemy.x;
+    const startY = enemy.y;
     moveEnemyAxis(enemy, "x", dt);
     moveEnemyAxis(enemy, "y", dt);
-    const cellX = Math.max(0, Math.min(COLS - 1, Math.floor(enemy.x / CELL)));
-    const cellY = Math.max(0, Math.min(ROWS - 1, Math.floor(enemy.y / CELL)));
-    const current = cellAt(cellX, cellY);
-    if (current === TRAIL_P1 || current === TRAIL_P2) {
-      const owner = app.players.find((player) => trailType(player) === current);
-      if (owner) {
-        playerLosesLife(owner, "Trail Snapped!");
-        owner.combo = 0;
-      }
+    const owner = trailOwnerAlongEnemyPath(startX, startY, enemy.x, enemy.y, enemy.r);
+    if (owner) {
+      playerLosesLife(owner, "Trail Snapped!");
+      owner.combo = 0;
     }
   }
 }
