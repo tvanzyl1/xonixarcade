@@ -1,6 +1,7 @@
 const CELL = 18;
 const COLS = 48;
 const ROWS = 32;
+const BORDER = 3;
 const WIDTH = CELL * COLS;
 const HEIGHT = CELL * ROWS;
 const OPEN = 0;
@@ -37,6 +38,8 @@ canvas.height = HEIGHT;
 
 const ui = {
   pauseButton: document.getElementById("pauseButton"),
+  menuButton: document.getElementById("menuButton"),
+  restartButton: document.getElementById("restartButton"),
   menuOverlay: document.getElementById("menuOverlay"),
   rulesOverlay: document.getElementById("rulesOverlay"),
   messageOverlay: document.getElementById("messageOverlay"),
@@ -145,10 +148,9 @@ const sounds = new SoundBoard();
 
 function makeBoard() {
   const board = Array.from({ length: ROWS }, () => Array(COLS).fill(OPEN));
-  const border = 3;
   for (let y = 0; y < ROWS; y += 1) {
     for (let x = 0; x < COLS; x += 1) {
-      if (x < border || y < border || x >= COLS - border || y >= ROWS - border) {
+      if (x < BORDER || y < BORDER || x >= COLS - BORDER || y >= ROWS - BORDER) {
         board[y][x] = SAFE_NEUTRAL;
       }
     }
@@ -234,7 +236,7 @@ function launchSolo() {
 function startSoloRound() {
   app.board = makeBoard();
   app.players = [
-    createPlayer(1, SAFE_P1, 4, Math.floor(ROWS / 2), {
+    createPlayer(1, SAFE_P1, 2, Math.floor(ROWS / 2), {
       up: ["w", "arrowup"],
       down: ["s", "arrowdown"],
       left: ["a", "arrowleft"],
@@ -254,13 +256,13 @@ function launchVersus() {
   app.mode = MODE_VERSUS;
   app.board = makeBoard();
   app.players = [
-    createPlayer(1, SAFE_P1, 4, 6, {
+    createPlayer(1, SAFE_P1, 2, 6, {
       up: ["w"],
       down: ["s"],
       left: ["a"],
       right: ["d"],
     }),
-    createPlayer(2, SAFE_P2, COLS - 5, ROWS - 7, {
+    createPlayer(2, SAFE_P2, COLS - 3, ROWS - 7, {
       up: ["arrowup"],
       down: ["arrowdown"],
       left: ["arrowleft"],
@@ -355,6 +357,14 @@ function handleKey(event) {
 function togglePause() {
   if (app.state === STATE_PLAYING) app.state = STATE_PAUSED;
   else if (app.state === STATE_PAUSED) app.state = STATE_PLAYING;
+}
+
+function restartCurrentMode() {
+  if (app.mode === MODE_SOLO) {
+    launchSolo();
+  } else if (app.mode === MODE_VERSUS) {
+    launchVersus();
+  }
 }
 
 function clearTrail(player, convertToSafe) {
@@ -459,12 +469,23 @@ function closeTrail(player) {
     }
   }
 
+  let selectedCaptures = captures;
+  if (app.mode === MODE_VERSUS && captures.length > 1) {
+    // In versus mode there are no free-roaming enemies to mark the "live"
+    // side of the arena, so we claim only the smallest newly enclosed region.
+    let smallest = captures[0];
+    for (const region of captures) {
+      if (region.length < smallest.length) smallest = region;
+    }
+    selectedCaptures = [smallest];
+  }
+
   let claimed = 0;
   for (const segment of trailSnapshot) {
     app.board[segment.y][segment.x] = player.safeType;
     claimed += 1;
   }
-  for (const region of captures) {
+  for (const region of selectedCaptures) {
     for (const tile of region) {
       app.board[tile.y][tile.x] = player.safeType;
       claimed += 1;
@@ -583,21 +604,26 @@ function getOwnedCounts() {
   let p1 = 0;
   let p2 = 0;
   let neutral = 0;
+  let capturableTotal = 0;
   for (let y = 0; y < ROWS; y += 1) {
     for (let x = 0; x < COLS; x += 1) {
+      const isCapturable = x >= BORDER && y >= BORDER && x < COLS - BORDER && y < ROWS - BORDER;
+      if (isCapturable) {
+        capturableTotal += 1;
+      }
       if (app.board[y][x] === SAFE_P1) p1 += 1;
       else if (app.board[y][x] === SAFE_P2) p2 += 1;
       else if (app.board[y][x] === SAFE_NEUTRAL) neutral += 1;
     }
   }
-  return { p1, p2, neutral, total: COLS * ROWS };
+  return { p1, p2, neutral, total: COLS * ROWS, capturableTotal };
 }
 
 function finishVersus() {
   const counts = getOwnedCounts();
   const [p1, p2] = app.players;
-  const p1Percent = Math.round((counts.p1 / counts.total) * 100);
-  const p2Percent = Math.round((counts.p2 / counts.total) * 100);
+  const p1Percent = Math.round((counts.p1 / counts.capturableTotal) * 100);
+  const p2Percent = Math.round((counts.p2 / counts.capturableTotal) * 100);
   let winner = "Draw";
   if (app.versusRule === "lives") {
     if (p1.alive && !p2.alive) winner = "Player 1";
@@ -608,6 +634,7 @@ function finishVersus() {
   } else if (p1.score !== p2.score) {
     winner = p1.score > p2.score ? "Player 1" : "Player 2";
   }
+  updateHud();
   sounds.victory();
   showMessage({
     eyebrow: "Match Over",
@@ -621,18 +648,18 @@ function finishVersus() {
 function updateHud() {
   if (app.mode === MODE_SOLO) {
     const counts = getOwnedCounts();
-    const safe = counts.p1 + counts.neutral;
+    const capturedPercent = Math.round((counts.p1 / counts.capturableTotal) * 100);
     ui.modeLabel.textContent = "Solo vs Computer";
     ui.modeSubtext.textContent = "Seal empty zones, dodge the drones, and hit the target capture percentage.";
     ui.scoreValue.textContent = String(app.solo.score);
-    ui.zoneValue.textContent = `${Math.round((safe / counts.total) * 100)}%`;
+    ui.zoneValue.textContent = `${capturedPercent}%`;
     ui.livesValue.textContent = String(app.players[0]?.lives ?? 3);
     ui.roundValue.textContent = String(app.solo.round);
     ui.versusHud.classList.add("hidden");
   } else if (app.mode === MODE_VERSUS) {
     const counts = getOwnedCounts();
-    const p1Percent = Math.round((counts.p1 / counts.total) * 100);
-    const p2Percent = Math.round((counts.p2 / counts.total) * 100);
+    const p1Percent = Math.round((counts.p1 / counts.capturableTotal) * 100);
+    const p2Percent = Math.round((counts.p2 / counts.capturableTotal) * 100);
     ui.modeLabel.textContent = app.versusRule === "area" ? "Versus: Area Battle" : "Versus: Lives Battle";
     ui.modeSubtext.textContent = app.versusRule === "area"
       ? `Own the most territory before ${app.versus.maxTimer}s expires.`
@@ -697,6 +724,12 @@ function updateFx(dt) {
 function updateGame(dt) {
   if (app.state !== STATE_PLAYING) return;
   if (app.mode === MODE_VERSUS && app.versusRule === "area") {
+    const counts = getOwnedCounts();
+    const claimedPercent = Math.round(((counts.p1 + counts.p2) / counts.capturableTotal) * 100);
+    if (claimedPercent >= 100) {
+      finishVersus();
+      return;
+    }
     app.versus.timer -= dt;
     if (app.versus.timer <= 0) {
       finishVersus();
@@ -710,6 +743,7 @@ function updateGame(dt) {
     moveEnemies(dt);
     const player = app.players[0];
     if (!player.alive) {
+      updateHud();
       showMessage({
         eyebrow: "Round Lost",
         title: "Too Slow!",
@@ -720,12 +754,13 @@ function updateGame(dt) {
       return;
     }
     const counts = getOwnedCounts();
-    const controlledPercent = Math.round(((counts.p1 + counts.neutral) / counts.total) * 100);
+    const controlledPercent = Math.round((counts.p1 / counts.capturableTotal) * 100);
     if (controlledPercent >= app.solo.targetPercent) {
       app.solo.round += 1;
       app.solo.score = player.score + 500;
       app.solo.lives = player.lives;
       sounds.victory();
+      updateHud();
       showMessage({
         eyebrow: "Round Won",
         title: "Zone Master!",
@@ -911,6 +946,14 @@ function bindUi() {
   ui.pauseButton.addEventListener("click", () => {
     sounds.click();
     if (app.mode) togglePause();
+  });
+  ui.menuButton.addEventListener("click", () => {
+    sounds.click();
+    returnToMenu();
+  });
+  ui.restartButton.addEventListener("click", () => {
+    sounds.click();
+    restartCurrentMode();
   });
   ui.messagePrimaryButton.addEventListener("click", () => {
     sounds.click();
