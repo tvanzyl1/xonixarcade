@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Neon Frontier X</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-shell">
+    <div class="ambient ambient-a"></div>
+    <div class="ambient ambient-b"></div>
+
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">Arcade Territory Rush</p>
+        <h1>Neon Frontier X</h1>
+      </div>
+      <button id="pauseButton" class="ghost-button" type="button">Pause</button>
+    </header>
+
+    <main class="stage">
+      <section class="play-column">
+        <div class="canvas-frame">
+          <canvas id="gameCanvas" width="864" height="576" aria-label="Game board"></canvas>
+          <div class="scanlines"></div>
+        </div>
+
+        <div id="touchControls" class="touch-controls" aria-label="Touch controls">
+          <button data-dir="up" type="button">▲</button>
+          <div class="touch-row">
+            <button data-dir="left" type="button">◀</button>
+            <button data-dir="down" type="button">▼</button>
+            <button data-dir="right" type="button">▶</button>
+          </div>
+        </div>
+      </section>
+
+      <aside class="hud-column">
+        <section class="panel mode-card">
+          <p class="panel-label">Mode</p>
+          <h2 id="modeLabel">Main Menu</h2>
+          <p id="modeSubtext">Claim the grid. Dodge the danger. Close the line.</p>
+        </section>
+
+        <section class="panel hud-panel">
+          <div class="hud-grid">
+            <div class="hud-stat">
+              <span>Score</span>
+              <strong id="scoreValue">0</strong>
+            </div>
+            <div class="hud-stat">
+              <span>Zone</span>
+              <strong id="zoneValue">0%</strong>
+            </div>
+            <div class="hud-stat">
+              <span>Lives</span>
+              <strong id="livesValue">-</strong>
+            </div>
+            <div class="hud-stat">
+              <span>Round</span>
+              <strong id="roundValue">-</strong>
+            </div>
+          </div>
+          <div id="versusHud" class="versus-hud hidden"></div>
+        </section>
+
+        <section class="panel tips-panel">
+          <p class="panel-label">Controls</p>
+          <div id="controlsHint" class="controls-copy">
+            <p>`WASD` or arrow keys</p>
+            <p>`P` pause, `R` restart</p>
+          </div>
+        </section>
+      </aside>
+    </main>
+
+    <section id="menuOverlay" class="overlay active">
+      <div class="overlay-card hero-card">
+        <p class="eyebrow">Premium Browser Arcade</p>
+        <h2>Claim the Grid!</h2>
+        <p class="overlay-copy">
+          Draw daring lines through hostile space, close them back to safety, and turn the arena into your glowing empire.
+        </p>
+        <div class="button-stack">
+          <button id="startSoloButton" class="primary-button" type="button">Solo vs Computer</button>
+          <button id="startVersusButton" class="primary-button alt" type="button">Two Player Versus</button>
+          <button id="howToPlayButton" class="ghost-button wide" type="button">How to Play</button>
+          <button id="soundToggleButton" class="ghost-button wide" type="button">Sound: On</button>
+        </div>
+        <div class="versus-settings">
+          <p class="panel-label">Versus Rule Set</p>
+          <div class="chip-row">
+            <button class="chip active" data-rule="area" type="button">Area Battle</button>
+            <button class="chip" data-rule="lives" type="button">Lives Battle</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section id="rulesOverlay" class="overlay">
+      <div class="overlay-card">
+        <p class="eyebrow">How To Play</p>
+        <h2>Close the Line</h2>
+        <div class="rules-list">
+          <p>Move on safe territory to stay protected, then cut into open space to draw a live neon trail.</p>
+          <p>Reconnect your trail to any safe ground to seal off a region. Empty regions become yours.</p>
+          <p>Solo mode: drifting enemies bounce inside the wild zone. If they touch your live trail, you lose a life.</p>
+          <p>Versus mode: Player 1 uses `WASD`, Player 2 uses arrow keys. Crossing another player's live trail punishes them.</p>
+          <p>Area Battle ends on the timer. Lives Battle ends when one player remains standing.</p>
+        </div>
+        <button id="closeRulesButton" class="primary-button" type="button">Back to Menu</button>
+      </div>
+    </section>
+
+    <section id="messageOverlay" class="overlay">
+      <div class="overlay-card">
+        <p id="messageEyebrow" class="eyebrow">Round Complete</p>
+        <h2 id="messageTitle">Zone Master!</h2>
+        <p id="messageBody" class="overlay-copy">You lit up enough of the arena to dominate the round.</p>
+        <div class="button-stack compact">
+          <button id="messagePrimaryButton" class="primary-button" type="button">Play Again</button>
+          <button id="messageSecondaryButton" class="ghost-button wide" type="button">Main Menu</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>

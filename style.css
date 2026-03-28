@@ -1,0 +1,383 @@
+:root {
+  --bg: #08111f;
+  --panel: rgba(11, 22, 43, 0.88);
+  --panel-strong: rgba(16, 30, 57, 0.96);
+  --line: rgba(115, 190, 255, 0.25);
+  --text: #ecf6ff;
+  --muted: #98b5d1;
+  --cyan: #48f2ff;
+  --blue: #46a1ff;
+  --pink: #ff5eb6;
+  --orange: #ff9b4a;
+  --gold: #ffe67a;
+  --danger: #ff5474;
+  --safe: #123052;
+  --unsafe: #07111e;
+  --shadow: 0 18px 60px rgba(0, 0, 0, 0.45);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Space Grotesk", sans-serif;
+  background:
+    radial-gradient(circle at top, rgba(72, 242, 255, 0.12), transparent 30%),
+    radial-gradient(circle at 80% 20%, rgba(255, 94, 182, 0.12), transparent 25%),
+    linear-gradient(180deg, #0b1630 0%, #050a15 100%);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+button {
+  font: inherit;
+}
+
+.app-shell {
+  position: relative;
+  min-height: 100vh;
+  padding: 24px;
+}
+
+.ambient {
+  position: fixed;
+  width: 32vw;
+  height: 32vw;
+  border-radius: 50%;
+  filter: blur(40px);
+  opacity: 0.26;
+  pointer-events: none;
+  animation: drift 16s ease-in-out infinite;
+}
+
+.ambient-a {
+  top: -8vw;
+  left: -4vw;
+  background: radial-gradient(circle, rgba(72, 242, 255, 0.5), transparent 70%);
+}
+
+.ambient-b {
+  right: -10vw;
+  bottom: -12vw;
+  background: radial-gradient(circle, rgba(255, 94, 182, 0.45), transparent 70%);
+  animation-delay: -8s;
+}
+
+.topbar,
+.stage {
+  position: relative;
+  z-index: 2;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.eyebrow,
+.panel-label {
+  margin: 0 0 8px;
+  font-family: "Chakra Petch", sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--gold);
+  font-size: 0.72rem;
+}
+
+h1,
+h2 {
+  margin: 0;
+  font-family: "Chakra Petch", sans-serif;
+  line-height: 0.95;
+}
+
+h1 {
+  font-size: clamp(2rem, 4vw, 3.8rem);
+}
+
+h2 {
+  font-size: clamp(2rem, 3.4vw, 3rem);
+}
+
+.stage {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 320px;
+  gap: 20px;
+  align-items: start;
+}
+
+.play-column,
+.hud-column {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.canvas-frame,
+.panel,
+.overlay-card,
+.touch-controls {
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 28px;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(14px);
+}
+
+.canvas-frame {
+  position: relative;
+  padding: 18px;
+}
+
+canvas {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: linear-gradient(180deg, rgba(6, 13, 25, 0.92), rgba(7, 17, 30, 0.98));
+  border-radius: 20px;
+}
+
+.scanlines {
+  position: absolute;
+  inset: 18px;
+  border-radius: 20px;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.03), rgba(255,255,255,0) 40%, rgba(255,255,255,0.03));
+  mix-blend-mode: screen;
+}
+
+.panel {
+  padding: 18px;
+}
+
+.mode-card h2 {
+  margin-bottom: 10px;
+}
+
+.mode-card p,
+.controls-copy p,
+.overlay-copy,
+.rules-list p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.hud-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.hud-stat,
+.versus-card {
+  border-radius: 20px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.hud-stat span,
+.versus-card span {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+  margin-bottom: 6px;
+}
+
+.hud-stat strong,
+.versus-card strong {
+  font-size: 1.35rem;
+  font-family: "Chakra Petch", sans-serif;
+}
+
+.versus-hud {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.versus-card.player1 strong {
+  color: var(--cyan);
+}
+
+.versus-card.player2 strong {
+  color: var(--pink);
+}
+
+.ghost-button,
+.primary-button,
+.chip,
+.touch-controls button {
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform 140ms ease, box-shadow 140ms ease, background 140ms ease, opacity 140ms ease;
+}
+
+.ghost-button,
+.chip {
+  padding: 12px 16px;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.primary-button {
+  padding: 14px 18px;
+  color: #06111d;
+  font-weight: 700;
+  background: linear-gradient(135deg, var(--cyan), #9effcb);
+  box-shadow: 0 12px 28px rgba(72, 242, 255, 0.28);
+}
+
+.primary-button.alt {
+  background: linear-gradient(135deg, #ffcf70, #ff7d5f);
+  box-shadow: 0 12px 28px rgba(255, 125, 95, 0.28);
+}
+
+.wide {
+  width: 100%;
+}
+
+.button-stack {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.button-stack.compact {
+  margin-top: 18px;
+}
+
+.chip-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.chip.active {
+  background: rgba(72, 242, 255, 0.18);
+  border-color: rgba(72, 242, 255, 0.38);
+}
+
+.ghost-button:hover,
+.primary-button:hover,
+.chip:hover,
+.touch-controls button:hover {
+  transform: translateY(-2px) scale(1.01);
+}
+
+.ghost-button:active,
+.primary-button:active,
+.chip:active,
+.touch-controls button:active {
+  transform: translateY(1px) scale(0.99);
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  background: rgba(2, 6, 15, 0.55);
+  z-index: 20;
+  padding: 20px;
+}
+
+.overlay.active {
+  display: flex;
+}
+
+.overlay-card {
+  width: min(560px, calc(100vw - 32px));
+  padding: 28px;
+  background: var(--panel-strong);
+}
+
+.hero-card {
+  width: min(640px, calc(100vw - 32px));
+}
+
+.versus-settings {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.rules-list {
+  display: grid;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+.touch-controls {
+  display: none;
+  align-self: center;
+  padding: 12px;
+  gap: 10px;
+}
+
+.touch-controls button {
+  width: 72px;
+  height: 72px;
+  font-size: 1.5rem;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.07);
+}
+
+.touch-row {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+
+@keyframes drift {
+  0%, 100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(0, 24px, 0) scale(1.08);
+  }
+}
+
+@media (max-width: 1080px) {
+  .stage {
+    grid-template-columns: 1fr;
+  }
+
+  .hud-column {
+    order: -1;
+  }
+
+  .touch-controls {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 700px) {
+  .app-shell {
+    padding: 14px;
+  }
+
+  .topbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .overlay-card {
+    padding: 22px;
+  }
+}
